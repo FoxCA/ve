@@ -37,8 +37,7 @@ end
 -- Inserts a string in the Model at the line and column specified
 function TextModel:write (ln, col, str)
   -- getOld
-  local ostr                = self.model.lines[ln]:sub(col, col+str:len())
-  self.edits[#self.edits+1] = {ln=ln,col=col,str=ostr}
+  local ostr                = self.model.lines[ln]
+  self.edits[#self.edits+1] = {ln=ln,str=ostr} -- TextState
+  self.reader:e()
 end
-
--- textAgentrObject

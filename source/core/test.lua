@@ -2,13 +2,7 @@
 -- By daelvn
 -- Testing functions
 
-return function (arg)
-  return function (filename)
-    return function (suite)
-      if arg == filename then
-        print ("ve/"..filename:sub(-4))
-        return suite ()
-      end
-    end
-  end
-end
+return {test=function (t)
+          if t.arg == t.flag then print ("ve/"..t.module); return t.suite () end end,
+        iterate=function (t)
+          for k,v in ipairs(t) do print(k,v) end end}

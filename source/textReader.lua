@@ -12,7 +12,7 @@ function TextReader:new (file, o)
     lines  = {},
     handle = {},
   }
-  setmetatatable(self, o)
+  setmetatable (self, o)
   self.__index = self
   return o
 end
@@ -26,7 +26,7 @@ function TextReader:ropen ()
   -- tryOpen
   local tryOpen = io.open (file, "r")
   if not tryOpen then return false end
-  tryOpen:close()
+  tryOpen:close ()
   -- fileOpen
   self.handle = io.open (file, "r")
   self.file   = file
@@ -44,7 +44,7 @@ function TextReader:wopen ()
   -- tryOpen
   local tryOpen = io.open (file, "w")
   if not tryOpen then return false end
-  tryOpen:close()
+  tryOpen:close ()
   -- fileOpen
   self.handle = io.open (file, "w")
   self.file   = file
@@ -58,6 +58,7 @@ end
 -- Close the handle
 function TextReader:close ()
   self.handle:close()
+  self.handle = nil
 end
 
 -- Get full document string
@@ -82,11 +83,11 @@ end
 function TextReader:write (ln, col, str)
   -- lineEdit
   local line  = self.lines[ln]
-  local first = line:sub(1, col)
-  local last  = line:sub(   col)
+  local first = line:sub (1, col)
+  local last  = line:sub (   col)
   self.lines[ln] = first..str..last
   -- fileWrite
-  self.handle:write (self:readAll())
+  self.handle:write (self:readAll ())
 end
 
 -- Flush
@@ -95,34 +96,62 @@ function TextReader:flush ()
 end
 
 -- Tests
-local test = require "core.test"
-test (arg[1]) "textReader.lua" (function (deb)
+local core_test     = require "core.test"
+local test, iterate = core_test.test, core_test.iterate
+local deb           = print
+test{
+  arg      = arg[1],
+  flag     = "-test",
+  module   = "textReader",
+  suite    = function ()
   -- :new
   deb ":new"
-  local obj = TextReader:new ("test.txt")
+  local obj = TextReader:new ("test.txt"); print(type(obj))
   if not obj then return false end
 
   -- :ropen
   deb ":ropen"
-  obj:ropen()
+  obj:ropen ()
   if (not obj.lines) or (not obj.handle) then return false end
 
   -- :wopen
   deb ":wopen"
-  obj:wopen()
+  obj:wopen ()
   if not obj.handle then return false end
 
   -- :readAll
   deb ":readAll"
-  local str = obj:readAll()
+  obj:ropen ()
+  local str = obj:readAll ()
   if not str then return false end
 
   -- :writeAll
   deb ":writeAll"
-  obj:writeAll()
+  obj:wopen ()
+  obj:writeAll ("Example data.")
+  if not obj.handle then return false end
+
+  -- :writeLines
+  deb ":writeLines"
+  obj:writeLines ()
+  if not obj.handle then return false end
+
+  -- :write
+  deb ":write"
+  obj:write (1, 3, "plo")
+
+  -- :flush
+  deb ":write"
+  obj:flush ()
+  if not obj.handle then return false end
+  
+  -- :close
+  deb ":close"
+  obj:close ()
+  if obj.handle then return false end
 
   return true end
-)
+}
 
 -- Return namespace
 return TextReader
