@@ -39,5 +39,10 @@ function TextModel:write (ln, col, str)
   -- getOld
   local ostr                = self.model.lines[ln]
   self.edits[#self.edits+1] = {ln=ln,str=ostr} -- TextState
-  self.reader:edit (ln,col,str)
+  -- editText
+  self.reader:wopen ()
+  self.reader:write (ln,col,str)
 end
+
+-- Registers a TextState in the edit register
+function TextModel:register (TextState) self.edits[#self.edits+1] = TextState end
