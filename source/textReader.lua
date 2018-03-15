@@ -3,25 +3,33 @@
 -- Reads text from a file and returns a handle
 
 -- Object
-local TextReader = {}
-
+local TextReader   = {}
+TextReader.__index = TextReader
 -- Create new TextReader
 function TextReader:new (file, o)
   o = o or {
     file   = file,
-    lines  = {},
-    handle = {},
+    lines  = {}
   }
-  setmetatable (self, o)
-  self.__index = self
+  setmetatable (o, self)
   return o
 end
 
 -- Opens the handle
 function TextReader:ropen ()
   local file = self.file
+  -- exists?
+  if not pcall (io.lines (file)) then
+    io.open (file, "w"):close()
+  end
+  -- readLines
+  local lc = 1
+  for line in io.lines (file) do
+    self.lines[lc] = line
+    lc = lc + 1
+  end
   -- closeLast
-  if self.handle.close then self.handle:close () end
+  if self.handle then self.handle:close () end
   self.handle = nil
   -- tryOpen
   local tryOpen = io.open (file, "r")
@@ -29,17 +37,21 @@ function TextReader:ropen ()
   tryOpen:close ()
   -- fileOpen
   self.handle = io.open (file, "r")
-  self.file   = file
+end
+function TextReader:wopen ()
+  local file = self.file
+  -- exists?
+  if not pcall (io.lines (file)) then
+    io.open (file, "w"):close()
+  end
+  -- readLines
   local lc = 1
   for line in io.lines (file) do
     self.lines[lc] = line
     lc = lc + 1
   end
-end
-function TextReader:wopen ()
-  local file = self.file
   -- closeLast
-  if self.handle.close then self.handle:close () end
+  if self.handle then self.handle:close () end
   self.handle = nil
   -- tryOpen
   local tryOpen = io.open (file, "w")
@@ -47,12 +59,6 @@ function TextReader:wopen ()
   tryOpen:close ()
   -- fileOpen
   self.handle = io.open (file, "w")
-  self.file   = file
-  local lc = 1
-  for line in io.lines (file) do
-    self.lines[lc] = line
-    lc = lc + 1
-  end
 end
 
 -- Close the handle
@@ -106,49 +112,66 @@ test{
   suite    = function ()
   -- :new
   deb ":new"
-  local obj = TextReader:new ("test.txt"); print(type(obj))
-  if not obj then return false end
-
-  -- :ropen
-  deb ":ropen"
-  obj:ropen ()
-  if (not obj.lines) or (not obj.handle) then return false end
+  local obj = TextReader:new "test.txt"
+  if not obj then error "ve/textReader:new! Error creating object" end
 
   -- :wopen
   deb ":wopen"
   obj:wopen ()
-  if not obj.handle then return false end
+  if not obj.lines  then error "ve/textReader:wopen! Error reading lines"  end
+  if not obj.handle then error "ve/textReader:wopen! Error opening handle" end
+
+  -- :ropen
+  deb ":ropen"
+  obj:ropen ()
+  if not obj.lines  then error "ve/textReader:ropen! Error reading lines"  end
+  if not obj.handle then error "ve/textReader:ropen! Error opening handle" end
 
   -- :readAll
   deb ":readAll"
   obj:ropen ()
   local str = obj:readAll ()
-  if not str then return false end
+  if not str then error "ve/textReader:readAll! Could not read file" end
 
   -- :writeAll
   deb ":writeAll"
   obj:wopen ()
   obj:writeAll ("Example data.")
-  if not obj.handle then return false end
+  if not obj.lines  then error "ve/textReader:writeAll! Error reading lines"  end
+  if not obj.handle then error "ve/textReader:writeAll! Error writing to file" end
+
+  -- :flush
+  deb ":flush"
+  obj:flush ()
+  if not obj.handle then error "ve/textReader:flush! Error opening handle" end
+
+  -- @reopen
+  deb "@reopen"
+  obj:close ()
+  if obj.handle then error "ve/textReader@reopen! Error closing handle" end
+  obj:wopen ()
+  if not obj.lines  then error "ve/textReader@reopen! Error reading lines (w)"  end
+  if not obj.handle then error "ve/textReader@reopen! Error opening handle (w)" end
 
   -- :writeLines
   deb ":writeLines"
   obj:writeLines ()
-  if not obj.handle then return false end
+  if not obj.handle then error "ve/textReader:writeLines! Error writing to file handle" end
 
   -- :write
   deb ":write"
   obj:write (1, 3, "plo")
+  if not obj.handle then error "ve/textReader:write! Error writing to file" end
 
-  -- :flush
-  deb ":write"
+  -- @flush
+  deb "@flush"
   obj:flush ()
-  if not obj.handle then return false end
+  if not obj.handle then error "ve/textReader@flush! Error flushing" end
   
   -- :close
   deb ":close"
   obj:close ()
-  if obj.handle then return false end
+  if obj.handle then error "ve/textReader:close! Error closing handle" end
 
   return true end
 }

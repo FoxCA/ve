@@ -3,7 +3,8 @@
 -- Wrapper around textReader that works in changes.
 
 -- Namespace
-local TextModel = {}
+local TextModel   = {}
+TextModel.__index = TextModel
 
 -- New
 function TextModel:new (textReader, o)
@@ -12,8 +13,7 @@ function TextModel:new (textReader, o)
     model  = {},
     edits  = {},
   }
-  setmetatable (self, o)
-  self.__index = self
+  setmetatable (o, self)
   return o
 end
 
@@ -26,7 +26,7 @@ function TextModel:initialize ()
   }
   -- Initialize line-based character count
   for n,l in ipairs (self.model.lines) do
-    self.model.count[n] = l:len()
+    self.model.count[n] = l:len ()
   end
 end
 
@@ -39,5 +39,5 @@ function TextModel:write (ln, col, str)
   -- getOld
   local ostr                = self.model.lines[ln]
   self.edits[#self.edits+1] = {ln=ln,str=ostr} -- TextState
-  self.reader:e()
+  self.reader:edit (ln,col,str)
 end
