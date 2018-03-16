@@ -10,7 +10,7 @@ You can type in a command by pressing `:`.
 ### Insert mode
 You can access this mode by pressing `i` in Normal mode. In this mode, all keys will be typed into the file. You can return into normal mode by pressing the Escape key.
 ### Visual mode
-In visual mode, that can be accessed by pressing `v` in Normal mode. In this mode, you can highlight words, copy, cut and paste, and select text.
+In visual mode, that can be accessed by pressing `v` in Normal mode, you can highlight words, copy, cut and paste, and select text.
 ## Verbs
 A ve Verb is a command that is not preceded by `:`. Verbs take ve Objects, that define positions in the text. An example would be the `d` Verb, that means delete. The verb alone doesn't delete anything, but combined with a line Object, you can delete a whole line.
 ### List of ve Verbs
