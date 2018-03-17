@@ -22,9 +22,11 @@ function TextActionTree:new (o)
   return o
 end
 
--- TextState --
+-- TextState & TextBase --
 local TextState   = {}
 TextState.__index = TextState
+local TextBase    = {}
+TextBase.__index  = TextBase
 
 -- New
 function TextState:new (ln, col, str, o)
@@ -36,6 +38,14 @@ function TextState:new (ln, col, str, o)
   setmetatable (o, self)
   return o
 end
+-- New (base)
+function TextBase:new (text, o)
+  o = o or {
+    text = text,
+  }
+  setmetatable (o, self)
+  return o
+end
 
 -- TextActionBranch --
 local TextActionBranch   = {}
@@ -43,13 +53,14 @@ TextActionBranch.__index = TextActionBranch
 
 -- New
 local _branchCount = 0
-function TextActionBranch:new (parent, name, pointer, line, o)
+function TextActionBranch:new (parent, name, pointer, line, base, o)
   _branchCount = _branchCount + 1
   o = o or {
-    parent  = parent,
+    parent  = parent  or "$none",
     name    = name    or ("fork-"..tostring(_branchCount)),
-    pointer = pointer or "0a",
+    pointer = pointer or "1a",
     line    = line    or {},
+    base    = base    or TextBase:new("")
   }
   setmetatable (o, self)
   return o
@@ -73,10 +84,11 @@ end
 function TextAction:new (last, textState, index, hasPointer, o, isFork)
   local incridx = _incrIndex (last and last.index or "0a", isFork)
   o = o or {
-    last       = last,
+    last       = last or "$none",
     index      = index or incridx,
     hasPointer = hasPointer or false,
-    state      = textState
+    state      = textState,
+    forks      = {}
   }
   setmetatable (o, self)
   return o
@@ -143,8 +155,45 @@ function TextAction:fork ()
 end
 
 -- TextActionBranch functions --
+-- TODO :initialize
+function TextActionBranch:initialize (textBase)
+  self.base     = textBase
+  self.line [0] = textBase
+end
+-- TODO :get
+function TextActionBranch:get (property)
+  if     property == "base"  then return self.base
+  elseif property == "first" then return self.line [1] 
+  elseif property == "last"  then return self.line [#self.line]
+  elseif property == "*"     then 
+    for k,v in pairs (self.line) do
+      if v.hasPointer == true then return v
+    end
+  end
+  --elseif property == "-" then return - end
+end
 -- TODO :act
-function TextActionBranch:act (textAction)
+function TextActionBranch:act (textState)
+  -- setData
+  local lastAction = self:get "last"
+  local base       = self:get "base"
+  -- createTextAction
+  local ta         = TextAction:new (
+    -- last
+    lastAction or base,
+    -- textState
+    textState,
+    -- index
+    lastAction and _incrIndex (lastAction.index) or _incrIndex (base.index),
+    -- hasPointer (we have to remove the pointer from lastAction)
+    true
+  )
+  -- removeOldPointer
+  (self:get "*").hasPointer = false
+  -- submitTextAction
+  self.line [#self.line+1] = ta
+  --
+  return true
 end
 -- TODO :on
 -- TODO :fork
