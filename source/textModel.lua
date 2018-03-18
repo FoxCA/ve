@@ -8,13 +8,11 @@ TextModel.__index = TextModel
 
 -- New
 function TextModel:new (textReader, o)
-  o = o or {
+  return setmetatable (o or {
     reader = textReader,
     model  = {},
     edits  = {},
-  }
-  setmetatable (o, self)
-  return o
+  }, self)
 end
 
 -- Initialize

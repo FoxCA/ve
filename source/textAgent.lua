@@ -3,19 +3,16 @@
 -- Agent for acting on TextReader objects
 
 -- Namespace
-local TextAgent = {}
-
+local TextAgent   = {}
+TextAgent.__index = TextAgent
 -- Libraries
 local diff = require "core.diff"
 
 -- Create a new TextAgent
 function TextAgent:new (reader, o)
-  o = o or {
-    reader = reader
-  }
-  setmetatable (self, o)
-  self.__index = self
-  return o
+  return setmetatable (o or {
+    reader = reader,
+  }, self)
 end
 
 --[[

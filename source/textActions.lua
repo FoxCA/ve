@@ -11,15 +11,11 @@ TextActionTree.__index = TextActionTree
 
 -- New
 function TextActionTree:new (o)
-  o = o or {
+  return setmetatable (o or {
     base     = nil,
-    branches = {},
+    branches = setmetatable ({}, {__call=function(t,s)return t[s]end}),
     current  = nil,
-  }
-  local bm = {__call=function(t,s)return t[s]end}
-  setmetatable (o.branches, bm)
-  setmetatable (o, self)
-  return o
+  }, self)
 end
 
 -- TextState & TextBase --
@@ -30,21 +26,17 @@ TextBase.__index  = TextBase
 
 -- New
 function TextState:new (ln, col, str, o)
-  o = o or {
+  return setmetatable (o or {
     line   = ln,
     column = col,
     predit = str,
-  }
-  setmetatable (o, self)
-  return o
+  }, self)
 end
 -- New (base)
 function TextBase:new (text, o)
-  o = o or {
+  return setmetatable( o or {
     text = text,
-  }
-  setmetatable (o, self)
-  return o
+  }, self)
 end
 
 -- TextActionBranch --
@@ -55,15 +47,13 @@ TextActionBranch.__index = TextActionBranch
 local _branchCount = 0
 function TextActionBranch:new (parent, name, pointer, line, base, o)
   _branchCount = _branchCount + 1
-  o = o or {
+  return setmetatable (o or {
     parent  = parent  or "$none",
     name    = name    or ("fork-"..tostring(_branchCount)),
     pointer = pointer or "1a",
     line    = line    or {},
     base    = base    or TextBase:new("")
-  }
-  setmetatable (o, self)
-  return o
+  }, self)
 end
 
 -- TextAction --
@@ -83,15 +73,13 @@ end
 -- New
 function TextAction:new (last, textState, index, hasPointer, o, isFork)
   local incridx = _incrIndex (last and last.index or "0a", isFork)
-  o = o or {
+  return setmetatable (o or {
     last       = last or "$none",
     index      = index or incridx,
     hasPointer = hasPointer or false,
     state      = textState,
     forks      = {}
-  }
-  setmetatable (o, self)
-  return o
+  }, self)
 end
 
 -- TextActionTree functions --
