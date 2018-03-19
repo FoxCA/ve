@@ -145,17 +145,17 @@ end
 -- TextActionBranch functions --
 -- TODO :initialize
 function TextActionBranch:initialize (textBase)
-  self.base     = textBase
   self.line [0] = textBase
+  self.base     = self.line [0] 
 end
 -- TODO :get
 function TextActionBranch:get (property)
   if     property == "base"  then return self.base
   elseif property == "first" then return self.line [1] 
-  elseif property == "last"  then return self.line [#self.line]
+  elseif property == "last"  then return self.line [#self.line] -- This can return the base
   elseif property == "*"     then 
     for k,v in pairs (self.line) do
-      if v.hasPointer == true then return v
+      if v.hasPointer == true then return v end
     end
   end
   --elseif property == "-" then return - end
@@ -163,28 +163,34 @@ end
 -- TODO :act
 function TextActionBranch:act (textState)
   -- setData
-  local lastAction = self:get "last"
-  local base       = self:get "base"
+  local lastAction = self:get "last" -- Last can be Base, as well
   -- createTextAction
-  local ta         = TextAction:new (
+  local action     = TextAction:new (
     -- last
-    lastAction or base,
+    lastAction,
     -- textState
     textState,
     -- index
-    lastAction and _incrIndex (lastAction.index) or _incrIndex (base.index),
+    lastAction.index and _incrIndex (lastAction.index) or _incrIndex (base.index),
     -- hasPointer (we have to remove the pointer from lastAction)
     true
   )
   -- removeOldPointer
-  (self:get "*").hasPointer = false
+  self:get "*".hasPointer  = false
   -- submitTextAction
-  self.line [#self.line+1] = ta
-  --
+  self.line [#self.line+1] = action
+  -- Return
   return true
 end
--- TODO :on
 -- TODO :fork
+function TextActionBranch:fork (textActionBranch)
+  -- getPointedAction
+  local action = self:get "*"
+  -- createFork
+  local fork   = TextActionBranch:new () 
+  action.forks [#action.forks+1] = textActionBranch.name
+end
+-- TODO :on
 -- TODO :over
 -- TODO :back
 -- TODO :undo
